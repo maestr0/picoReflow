@@ -28,13 +28,13 @@ except ImportError:
     sensor_available = False
 
 try:
-    import RPi.GPIO as GPIO
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setwarnings(False)
-    GPIO.setup(config.gpio_heat, GPIO.OUT)
-    GPIO.setup(config.gpio_cool, GPIO.OUT)
-    GPIO.setup(config.gpio_air, GPIO.OUT)
-    GPIO.setup(config.gpio_door, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    import RPi.GPIO
+    RPi.GPIO.setmode(RPi.GPIO.BCM)
+    RPi.GPIO.setwarnings(False)
+    RPi.GPIO.setup(config.gpio_heat, RPi.GPIO.OUT)
+    RPi.GPIO.setup(config.gpio_cool, RPi.GPIO.OUT)
+    RPi.GPIO.setup(config.gpio_air, RPi.GPIO.OUT)
+    RPi.GPIO.setup(config.gpio_door, RPi.GPIO.IN, pull_up_down=RPi.GPIO.PUD_UP)
 
     gpio_available = True
 except ImportError:
@@ -149,31 +149,31 @@ class Oven (threading.Thread):
         if value:
             self.heat = 1.0
             if gpio_available:
-                GPIO.output(config.gpio_heat, GPIO.LOW)
+                log.info("init MAX6675")##                GPIO.output(config.gpio_heat, GPIO.LOW)
         else:
             self.heat = 0.0
             if gpio_available:
-                GPIO.output(config.gpio_heat, GPIO.HIGH)
+                log.info("init MAX6675") ##  GPIO.output(config.gpio_heat, GPIO.HIGH)
 
     def set_cool(self, value):
         if value:
             self.cool = 1.0
             if gpio_available:
-                GPIO.output(config.gpio_cool, GPIO.LOW)
+                log.info("init MAX6675")  ##  GPIO.output(config.gpio_cool, GPIO.LOW)
         else:
             self.cool = 0.0
             if gpio_available:
-                GPIO.output(config.gpio_cool, GPIO.HIGH)
+                log.info("init MAX6675") ##    GPIO.output(config.gpio_cool, GPIO.HIGH)
 
     def set_air(self, value):
         if value:
             self.air = 1.0
             if gpio_available:
-                GPIO.output(config.gpio_air, GPIO.LOW)
+                log.info("init MAX6675") ##    GPIO.output(config.gpio_air, GPIO.LOW)
         else:
             self.air = 0.0
             if gpio_available:
-                GPIO.output(config.gpio_air, GPIO.HIGH)
+                log.info("init MAX6675")  ##  GPIO.output(config.gpio_air, GPIO.HIGH)
 
     def get_state(self):
         state = {
@@ -191,7 +191,7 @@ class Oven (threading.Thread):
 
     def get_door_state(self):
         if gpio_available:
-            return "OPEN" if GPIO.input(config.gpio_door) else "CLOSED"
+            return "OPEN" if RPi.GPIO.input(config.gpio_door) else "CLOSED"
         else:
             return "UNKNOWN"
 
