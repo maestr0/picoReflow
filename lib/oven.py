@@ -10,7 +10,7 @@ import config
 log = logging.getLogger(__name__)
 
 try:
-    if (config.max31855 == config.max6675):
+    if (config.max31855 + config.max6675 + config.max31855_hardware_spi != 1):
     	log.error("choose (only) one converter IC")
 	exit()
     if config.max31855:
@@ -19,6 +19,9 @@ try:
     if config.max6675:
    	from max6675 import MAX6675, MAX6675Error
     	log.info("import MAX6675")
+    if config.max31855_hardware_spi:
+        import Adafruit_GPIO.SPI as SPI
+        import Adafruit_MAX31855.MAX31855 as MAX31855
     sensor_available = True
 except ImportError:
     log.warning("Could not initialize temperature sensor, using dummy values!")
@@ -216,10 +219,19 @@ class TempSensorReal(TempSensor):
                                      config.gpio_sensor_clock,
                                      config.gpio_sensor_data,
                                      "c")
+        if config.max31855_hardware_spi:
+        	log.info("init MAX31855 hardware spi 0")
+		SPI_PORT   = 0
+		SPI_DEVICE = 0
+		self.thermocouple = MAX31855.MAX31855(spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE))
 
     def run(self):
         while True:
-            self.temperature = self.thermocouple.get()
+            if config.max31855_hardware_spi:
+                self.temperature = self.thermocouple.readTempC()
+            else:
+                self.temperature = self.thermocouple.get()
+
             time.sleep(self.time_step)
 
 
