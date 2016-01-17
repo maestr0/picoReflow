@@ -36,6 +36,8 @@ try:
     RPi.GPIO.setup(config.gpio_air, RPi.GPIO.OUT)
     RPi.GPIO.setup(config.gpio_door, RPi.GPIO.IN, pull_up_down=RPi.GPIO.PUD_UP)
 
+    RPi.GPIO.output(config.gpio_heat, RPi.GPIO.LOW)
+
     gpio_available = True
 except ImportError:
     msg = "Could not initialize GPIOs, oven operation will only be simulated!"
@@ -149,31 +151,31 @@ class Oven (threading.Thread):
         if value:
             self.heat = 1.0
             if gpio_available:
-                log.info("init MAX6675")##                GPIO.output(config.gpio_heat, GPIO.LOW)
+                RPi.GPIO.output(config.gpio_heat, RPi.GPIO.LOW)
         else:
             self.heat = 0.0
             if gpio_available:
-                log.info("init MAX6675") ##  GPIO.output(config.gpio_heat, GPIO.HIGH)
+                RPi.GPIO.output(config.gpio_heat, RPi.GPIO.HIGH)
 
     def set_cool(self, value):
         if value:
             self.cool = 1.0
             if gpio_available:
-                log.info("init MAX6675")  ##  GPIO.output(config.gpio_cool, GPIO.LOW)
+                RPi.GPIO.output(config.gpio_cool, RPi.GPIO.LOW)
         else:
             self.cool = 0.0
             if gpio_available:
-                log.info("init MAX6675") ##    GPIO.output(config.gpio_cool, GPIO.HIGH)
+                RPi.GPIO.output(config.gpio_cool, RPi.GPIO.HIGH)
 
     def set_air(self, value):
         if value:
             self.air = 1.0
             if gpio_available:
-                log.info("init MAX6675") ##    GPIO.output(config.gpio_air, GPIO.LOW)
+                RPi.GPIO.output(config.gpio_air, RPi.GPIO.LOW)
         else:
             self.air = 0.0
             if gpio_available:
-                log.info("init MAX6675")  ##  GPIO.output(config.gpio_air, GPIO.HIGH)
+                RPi.GPIO.output(config.gpio_air, RPi.GPIO.HIGH)
 
     def get_state(self):
         state = {
