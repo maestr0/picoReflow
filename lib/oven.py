@@ -69,9 +69,9 @@ class Oven (threading.Thread):
         self.target = 0
         self.door = self.get_door_state()
         self.state = Oven.STATE_IDLE
-        self.set_heat(True)
-        self.set_cool(True)
-        self.set_air(True)
+        self.set_heat(False)
+        self.set_cool(False)
+        self.set_air(False)
         self.pid = PID(ki=config.pid_ki, kd=config.pid_kd, kp=config.pid_kp)
 
     def run_profile(self, profile):
@@ -97,14 +97,21 @@ class Oven (threading.Thread):
                 else:
                     runtime_delta = datetime.datetime.now() - self.start_time
                     self.runtime = runtime_delta.total_seconds()
+
                 log.info("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" % (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door, self.runtime, self.totaltime))
                 self.target = self.profile.get_target_temperature(self.runtime)
                 pid = self.pid.compute(self.target, self.temp_sensor.temperature)
 
                 log.info("pid: %.3f" % pid)
 
-                self.set_cool(pid <= -1)
-                if(pid > 0):
+                heatingOn = pid > 0
+                coolingOn = pid <= -1
+
+                self.set_cool(coolingOn)
+                
+                self.set_heat(heatingOn)
+
+                if(heatingOn):
                     # The temp should be changing with the heat on
                     # Count the number of time_steps encountered with no change and the heat on
                     if last_temp == self.temp_sensor.temperature:
@@ -115,24 +122,15 @@ class Oven (threading.Thread):
                     # The direction or amount of change does not matter
                     # This prevents runaway in the event of a sensor read failure                   
                     if temperature_count > 20:
-                        log.info("Error reading sensor, oven temp not responding to heat.")
+                        log.error("Error reading sensor, oven temp not responding to heat.")
                         self.reset()
                 else:
-                    temperature_count = 0
-                
-                self.set_heat(pid > 0)
-                
-                #if self.profile.is_rising(self.runtime):
-                #    self.set_cool(False)
-                #    self.set_heat(self.temp_sensor.temperature < self.target)
-                #else:
-                #    self.set_heat(False)
-                #    self.set_cool(self.temp_sensor.temperature > self.target)
+                    temperature_count = 0                                            
 
                 if self.temp_sensor.temperature > 200:
-                    self.set_air(False)
-                elif self.temp_sensor.temperature < 180:
                     self.set_air(True)
+                elif self.temp_sensor.temperature < 180:
+                    self.set_air(False)
 
                 if self.runtime >= self.totaltime:
                     self.reset()
@@ -146,31 +144,31 @@ class Oven (threading.Thread):
         if value:
             self.heat = 1.0
             if gpio_available:
-                GPIO.output(config.gpio_heat, GPIO.LOW)
+                GPIO.output(config.gpio_heat, GPIO.HIGH)
         else:
             self.heat = 0.0
             if gpio_available:
-                GPIO.output(config.gpio_heat, GPIO.HIGH)
+                GPIO.output(config.gpio_heat, GPIO.LOW)
 
     def set_cool(self, value):
         if value:
             self.cool = 1.0
             if gpio_available:
-                GPIO.output(config.gpio_cool, GPIO.LOW)
+                GPIO.output(config.gpio_cool, GPIO.HIGH)
         else:
             self.cool = 0.0
             if gpio_available:
-                GPIO.output(config.gpio_cool, GPIO.HIGH)
+                GPIO.output(config.gpio_cool, GPIO.LOW)
 
     def set_air(self, value):
         if value:
             self.air = 1.0
             if gpio_available:
-                GPIO.output(config.gpio_air, GPIO.LOW)
+                GPIO.output(config.gpio_air, GPIO.HIGH)
         else:
             self.air = 0.0
             if gpio_available:
-                GPIO.output(config.gpio_air, GPIO.HIGH)
+                GPIO.output(config.gpio_air, GPIO.LOW)
 
     def get_state(self):
         state = {
