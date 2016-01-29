@@ -19,7 +19,7 @@ graph.profile =
     label: "Profile",
     data: [],
     points: { show: false },
-    color: "#75890c",
+    color: "#FF0000",
     draggable: false
 };
 
