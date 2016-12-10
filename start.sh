@@ -1,4 +1,4 @@
 
 
 cd /home/pi/picoReflow/
-python picoreflowd.py
+sudo python picoreflowd.py
