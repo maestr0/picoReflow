@@ -104,14 +104,8 @@ class Oven (threading.Thread):
 
                 log.info("pid: %.3f" % pid)
 
-                heatingOn = pid > 0
-                coolingOn = pid <= -1
-
-                self.set_cool(coolingOn)
-                
-                self.set_heat(heatingOn)
-
-                if(heatingOn):
+                self.set_cool(pid <= -1)
+                if(pid > 0):
                     # The temp should be changing with the heat on
                     # Count the number of time_steps encountered with no change and the heat on
                     if last_temp == self.temp_sensor.temperature:
@@ -122,15 +116,24 @@ class Oven (threading.Thread):
                     # The direction or amount of change does not matter
                     # This prevents runaway in the event of a sensor read failure                   
                     if temperature_count > 20:
-                        log.error("Error reading sensor, oven temp not responding to heat.")
+                        log.info("Error reading sensor, oven temp not responding to heat.")
                         self.reset()
                 else:
-                    temperature_count = 0                                            
+                    temperature_count = 0
+                
+                self.set_heat(pid > 0)
+                
+                #if self.profile.is_rising(self.runtime):
+                #    self.set_cool(False)
+                #    self.set_heat(self.temp_sensor.temperature < self.target)
+                #else:
+                #    self.set_heat(False)
+                #    self.set_cool(self.temp_sensor.temperature > self.target)
 
                 if self.temp_sensor.temperature > 200:
-                    self.set_air(True)
-                elif self.temp_sensor.temperature < 180:
                     self.set_air(False)
+                elif self.temp_sensor.temperature < 180:
+                    self.set_air(True)
 
                 if self.runtime >= self.totaltime:
                     self.reset()
@@ -207,13 +210,14 @@ class TempSensorReal(TempSensor):
         	self.thermocouple = MAX6675(config.gpio_sensor_cs,
                                      config.gpio_sensor_clock,
                                      config.gpio_sensor_data,
-                                     "c")
+                                     config.temp_scale)
+
         if config.max31855:
         	log.info("init MAX31855")
         	self.thermocouple = MAX31855(config.gpio_sensor_cs,
                                      config.gpio_sensor_clock,
                                      config.gpio_sensor_data,
-                                     "c")
+                                     config.temp_scale)
 
     def run(self):
         while True:
