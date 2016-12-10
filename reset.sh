@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 gpio mode 15 out
 gpio mode 16 out
 gpio mode 1 out
