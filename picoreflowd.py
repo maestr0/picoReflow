@@ -115,8 +115,8 @@ def handle_storage():
                 profile_obj = msgdict.get('profile')
                 if delete_profile(profile_obj):
                   msgdict["resp"] = "OK"
-                wsock.send(json.dumps(msgdict))
-                #wsock.send(get_profiles())
+                # wsock.send(json.dumps(msgdict))
+                wsock.send(get_profiles())
             elif msgdict.get("cmd") == "PUT":
                 log.info("PUT command received")
                 profile_obj = msgdict.get('profile')
